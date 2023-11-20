@@ -100,7 +100,7 @@ void loop()
       char *token = strtok((char *)responseCPtr, ";");
       // split first token
       char *cmd = strtok(NULL, ";");
-      Serial.println("cmd" + *cmd);
+      Serial.println(cmd);
       // random new question
       question = generateRandomString(PASSLEGTH);
       pCharacteristic->setValue(question.c_str());
