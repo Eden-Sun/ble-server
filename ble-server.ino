@@ -13,6 +13,7 @@
 
 #define SERVICE_UUID "0823143b-306c-4735-83db-64053a24765c"
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+#define PASSLEGTH 8
 
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
@@ -34,17 +35,23 @@ class MyServerCallbacks : public BLEServerCallbacks
   }
 };
 
+String answer = "";
+
 String generateRandomString(int length)
 {
+
   String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   String randomString = "";
-
+  answer = "";
   for (int i = 0; i < length; ++i)
   {
     int randomIndex = random(characters.length());
     randomString += characters.charAt(randomIndex);
   }
-
+  for (int i = 0; i < length; ++i)
+  {
+    answer += randomString.charAt(length - i - 1);
+  }
   return randomString;
 }
 
@@ -63,8 +70,8 @@ void setup()
   pCharacteristic = pService->createCharacteristic(
       CHARACTERISTIC_UUID,
       BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
-  question = generateRandomString(8);
-  Serial.println(question.c_str());
+  question = generateRandomString(PASSLEGTH);
+  Serial.println("Q:" + question);
   pCharacteristic->setValue(question.c_str());
   pService->start();
   // BLEAdvertising *pAdvertising = pServer->getAdvertising();  // this still is working for backward compatibility
@@ -82,12 +89,23 @@ void loop()
   // put your main code here, to run repeatedly:
   if (deviceConnected)
   {
-    const char *newV = pCharacteristic->getValue().c_str();
-    if (!question.compareTo(String(newV)))
+    std::string readValue = pCharacteristic->getValue();
+    const char *responseCPtr = readValue.c_str();
+    // is equal to question
+    if (strncmp(answer.c_str(), responseCPtr, 8) == 0)
     {
-      Serial.println(*newV);
+      // correct
+      // differ
+      Serial.println("Key Authorized.");
+      char *token = strtok((char *)responseCPtr, ";");
+      // split first token
+      char *cmd = strtok(NULL, ";");
+      Serial.println("cmd" + *cmd);
+      // random new question
+      question = generateRandomString(PASSLEGTH);
+      pCharacteristic->setValue(question.c_str());
     };
-    delay(200);
+    delay(50);
   }
 
   // disconnecting
