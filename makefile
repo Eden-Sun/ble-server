@@ -1,3 +1,4 @@
+BOARD_DEV?=esp8266:esp8266:nodemcu
 BOARD?=esp32:esp32:lolin_c3_mini
 PORT?=/dev/cu.usbmodem101
 BUILD=build
